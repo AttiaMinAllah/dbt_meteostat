@@ -24,5 +24,5 @@ add_more_features AS (
     END) AS day_part
   FROM add_features
 )
-SELECT amf.*, wc.weather_condition
-FROM add_more_features amf
+SELECT *
+FROM add_more_features

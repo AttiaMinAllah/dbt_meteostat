@@ -26,5 +26,3 @@ add_more_features AS (
 )
 SELECT amf.*, wc.weather_condition
 FROM add_more_features amf
-JOIN {{ref('weather_codes')}} wc
-ON wc.code = amf.condition_code

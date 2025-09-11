@@ -1,6 +1,6 @@
 WITH departures AS (
     SELECT 
-        dest as airport_code,
+        origin as airport_code,
         COUNT(DISTINCT origin) AS nunique_from,
         COUNT(sched_dep_time) AS dep_planned,
         SUM(cancelled) AS dep_cancelled,

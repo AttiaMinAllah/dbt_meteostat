@@ -6,7 +6,7 @@ WITH departures AS (
         SUM(cancelled) AS dep_cancelled,
         SUM(diverted) AS dep_diverted,
         COUNT(dep_time) AS dep_n_flights
-    FROM ({{ref('prep_flights')}})
+    FROM {{ref('prep_flights')}}
 ),
 arrivals AS (
     SELECT 
@@ -16,7 +16,7 @@ arrivals AS (
         SUM(cancelled) AS arr_cancelled,
         SUM(diverted) AS arr_diverted,
         COUNT(arr_time) AS arr_n_flights
-    FROM ({{ref('prep_flights')}})
+    FROM {{ref('prep_flights')}}
     GROUP BY dest
 ),
 total_stats AS (
@@ -35,6 +35,6 @@ total_stats AS (
 SELECT a.city, a.country, a.name,
 ts.* 
 from total_stats ts
-join ({{ref('prep_flights')}}) a
+join {{ref('prep_flights')}} a
 on ts.airport_code = a.faa
 

@@ -1,42 +1,47 @@
-WITH departures AS (
-    SELECT 
-        origin as airport_code,
-        COUNT(DISTINCT origin) AS nunique_from,
-        COUNT(sched_dep_time) AS dep_planned,
-        SUM(cancelled) AS dep_cancelled,
-        SUM(diverted) AS dep_diverted,
-        COUNT(dep_time) AS dep_n_flights
-    FROM {{ref('prep_flights')}}
-    GROUP BY origin
-),
-arrivals AS (
-    SELECT 
-        dest as airport_code,
-        COUNT(DISTINCT origin) AS nunique_to,
-        COUNT(sched_arr_time) AS arr_planned,
-        SUM(cancelled) AS arr_cancelled,
-        SUM(diverted) AS arr_diverted,
-        COUNT(arr_time) AS arr_n_flights
-    FROM {{ref('prep_flights')}}
-    GROUP BY dest
-),
-total_stats AS (
-    SELECT 
-        d.airport_code,
-        a.nunique_to,
-        d.nunique_from,
-        (d.dep_planned + a.arr_planned) AS total_planned,
-        (d.dep_cancelled + a.arr_cancelled) AS total_cancelled,
-        (d.dep_diverted + a.arr_diverted) AS total_diverted,
-        (d.dep_n_flights + a.arr_n_flights) AS total_flights
-    FROM departures d
-    JOIN arrivals a 
-      using(airport_code)
-)
-SELECT a.city, a.country, a.name,
-ts.* 
-from total_stats ts
-join {{ ref('prep_airports') }} ap
-on ts.airport_code = ap.faa
+with departures as(
+select
+    origin as airport_code,
+    count(distinct dest) nunique_to,
+    count(sched_dep_time) dep_planned,
+    sum(cancelled) dep_cancelled,
+    sum(pf.diverted) dep_diverted,
+    count(dep_time) dep_n_flights
+from
+    {{ref('prep_flights')}} as pf
+group by
+    origin
+    ),
+arrivals as (
+select 
+    dest as airport_code,
+    count(distinct origin) nunique_from,
+    count(sched_dep_time) arr_planned,
+    sum(cancelled) arr_cancelled,
+    sum(pf.diverted) arr_diverted,
+    count(arr_time) arr_n_flights
+from
+    {{ref('prep_flights')}} as pf
+group by
+    dest
+    ),
+    total_stats as (
+select
+    airport_code,
+    nunique_to,
+    nunique_from,
+    (dep_planned + arr_planned) total_planned,
+    (dep_cancelled + arr_cancelled) total_cancelled,
+    (dep_diverted + arr_diverted) total_diverted,
+    (dep_n_flights + arr_n_flights)total_flights
+from
+    departures d
+join arrivals a
+        using (airport_code)
+    )
+    select
 
-
+    *
+from
+    total_stats ts
+join {{ref('prep_airports')}} as a on
+    ts.airport_code = a.faa

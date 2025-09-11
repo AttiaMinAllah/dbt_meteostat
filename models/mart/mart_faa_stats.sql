@@ -7,6 +7,7 @@ WITH departures AS (
         SUM(diverted) AS dep_diverted,
         COUNT(dep_time) AS dep_n_flights
     FROM {{ref('prep_flights')}}
+    GROUP BY origin
 ),
 arrivals AS (
     SELECT 

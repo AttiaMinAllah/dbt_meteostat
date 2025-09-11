@@ -1,18 +1,18 @@
 WITH departures AS (
     SELECT 
-        dest as airport_code,
-        COUNT(DISTINCT origin) AS nunique_from,
+        origin AS airport_code,   -- departures are from origin
+        COUNT(DISTINCT dest) AS nunique_to,
         COUNT(sched_dep_time) AS dep_planned,
         SUM(cancelled) AS dep_cancelled,
         SUM(diverted) AS dep_diverted,
         COUNT(dep_time) AS dep_n_flights
     FROM prep_flights
-    GROUP BY dest
+    GROUP BY origin
 ),
 arrivals AS (
     SELECT 
-        dest as airport_code,
-        COUNT(DISTINCT origin) AS nunique_to,
+        dest AS airport_code,     -- arrivals are into dest
+        COUNT(DISTINCT origin) AS nunique_from,
         COUNT(sched_arr_time) AS arr_planned,
         SUM(cancelled) AS arr_cancelled,
         SUM(diverted) AS arr_diverted,
@@ -23,18 +23,21 @@ arrivals AS (
 total_stats AS (
     SELECT 
         d.airport_code,
-        a.nunique_to,
-        d.nunique_from,
+        d.nunique_to,
+        a.nunique_from,
         (d.dep_planned + a.arr_planned) AS total_planned,
         (d.dep_cancelled + a.arr_cancelled) AS total_cancelled,
         (d.dep_diverted + a.arr_diverted) AS total_diverted,
         (d.dep_n_flights + a.arr_n_flights) AS total_flights
     FROM departures d
     JOIN arrivals a 
-      using(airport_code)
+      ON d.airport_code = a.airport_code
 )
-SELECT a.city, a.country, a.name,
-ts.* 
-from total_stats ts
-join prep_airports a
-on ts.airport_code = a.faa
+SELECT 
+    ap.city, 
+    ap.country, 
+    ap.name,
+    ts.*
+FROM total_stats ts
+JOIN prep_airports ap
+  ON ts.airport_code = ap.faa;   -- make sure prep_airports has column `faa`
